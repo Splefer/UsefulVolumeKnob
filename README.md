@@ -1,6 +1,6 @@
 # Dial Volume Control
 
-A two-file app that intercepts the CORSAIR K70 CORE TKL's rotary dial and adjusts only the **focused app's volume** in the Windows Volume Mixer — not the system master volume.
+A two-file app that intercepts keyboards' rotary dials and adjusts only the **focused app's volume** in the Windows Volume Mixer — not the system master volume.
 
 ***
 
