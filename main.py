@@ -44,7 +44,6 @@ def get_foreground_process_name():
 def adjust_app_volume(delta):
     index = get_current_index()
     target_entry = TARGETS[index]
-
     if target_entry == "foreground":
         target = get_foreground_process_name()
     else:
@@ -54,14 +53,29 @@ def adjust_app_volume(delta):
         return
 
     sessions = AudioUtilities.GetAllSessions()
-    for session in sessions:
-        if session.Process and session.Process.name().lower() == target.lower():
-            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
-            current = volume.GetMasterVolume()
-            new_vol = max(0.0, min(1.0, current + delta))
-            volume.SetMasterVolume(new_vol, None)
-            print(f"[{target_entry}] {target} → {int(new_vol * 100)}%")
+    matching = [s for s in sessions
+                if s.Process and s.Process.name().lower() == target.lower()]
+
+    if not matching:
+        return
+
+    # Use the active session's current volume as the reference point
+    reference = matching[0]
+    for s in matching:
+        if s.State == 1:
+            reference = s
             break
+
+    ref_vol = reference._ctl.QueryInterface(ISimpleAudioVolume)
+    current = ref_vol.GetMasterVolume()
+    new_vol = max(0.0, min(1.0, current + delta))
+
+    # Apply new_vol to ALL matching sessions
+    for s in matching:
+        vol = s._ctl.QueryInterface(ISimpleAudioVolume)
+        vol.SetMasterVolume(new_vol, None)
+
+    print(f"[{target_entry}] {target} → {int(new_vol * 100)}%")
 
 
 def cycle_target():

@@ -27,9 +27,9 @@ TARGETS = [
 ]
 
 LABELS = {
-    0: ("🖥  Foreground", "#aaaaaa"),
-    1: ("🎵  Spotify",    "#1db954"),
-    2: ("🎙  Discord",    "#5865f2"),
+    0: ("🖥 ", "#aaaaaa"), # you can have text here (or emojis)
+    1: ("🎵 ",    "#1db954"),
+    2: ("🎙 ",    "#5865f2"),
     3: ("Slot 3",         "#ffa500"),
     4: ("Slot 4",         "#ff0080"),
     5: ("Slot 5",         "#00c8ff"),
@@ -77,10 +77,17 @@ def get_volume_for_index(index):
         return None
     try:
         sessions = AudioUtilities.GetAllSessions()
-        for session in sessions:
-            if session.Process and session.Process.name().lower() == target.lower():
-                vol = session._ctl.QueryInterface(ISimpleAudioVolume)
-                return int(vol.GetMasterVolume() * 100)
+        matching = [s for s in sessions
+                    if s.Process and s.Process.name().lower() == target.lower()]
+        if not matching:
+            return None
+        chosen = matching[0]
+        for s in matching:
+            if s.State == 1:
+                chosen = s
+                break
+        vol = chosen._ctl.QueryInterface(ISimpleAudioVolume)
+        return int(vol.GetMasterVolume() * 100)
     except:
         pass
     return None

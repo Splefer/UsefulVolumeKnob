@@ -22,15 +22,15 @@ Volume_Mute:: {
     Run('pythonw "C:\path\to\main.py" cycle',, "Hide")
 }
 
-; Global exit hotkey: closes this script AND overlay, keybind to close is Ctrl+Alt+Q
-^!q:: {
+; Global exit hotkey: closes this script AND overlay, keybind to close is Alt+Shift+Q
+!+q:: {
     ; Try to close overlay window by title
     WinClose("DialVolumeOverlay ahk_class TkTopLevel")
     ExitApp()
 }
 
-; Hiding the overlay if it is obstructing something, default keybind is Ctrl+Alt+G
-^!g:: {
+; Hiding the overlay if it is obstructing something, default keybind is Alt+Shift+G
+!+g:: {
     static overlayVisible := true
     if overlayVisible {
         WinHide("DialVolumeOverlay ahk_class TkTopLevel")
