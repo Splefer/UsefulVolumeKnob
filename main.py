@@ -5,7 +5,7 @@ import win32process
 import psutil
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 
-VOLUME_STEP = 0.05
+VOLUME_STEP = 0.03
 
 # --- Target list: add/remove entries here to expand ---
 # "foreground" is a special keyword meaning the active window

@@ -27,12 +27,9 @@ TARGETS = [
 ]
 
 LABELS = {
-    0: ("🖥 ", "#aaaaaa"), # you can have text here (or emojis)
-    1: ("🎵 ",    "#1db954"),
-    2: ("🎙 ",    "#5865f2"),
-    3: ("Slot 3",         "#ffa500"),
-    4: ("Slot 4",         "#ff0080"),
-    5: ("Slot 5",         "#00c8ff"),
+    0: ("🖥  Foreground", "#aaaaaa"),
+    1: ("Spotify", "#1db954"),
+    2: ("Discord", "#5865f2"),
 }
 
 # --- Single instance lock ---

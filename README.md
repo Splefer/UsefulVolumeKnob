@@ -98,7 +98,7 @@ If you want the overlay to show sometimes, and not have to keep restarting the p
 ```ahk
 overlayEnabled := 1
 ```
-After this, you can now use Ctrl + Alt + G to toggle the visibility of the overlay whenever you want.
+After this, you can now use Shift + Alt + G to toggle the visibility of the overlay whenever you want.
 
 ### Choosing a display style
 
