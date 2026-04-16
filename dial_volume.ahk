@@ -28,3 +28,16 @@ Volume_Mute:: {
     WinClose("DialVolumeOverlay ahk_class TkTopLevel")
     ExitApp()
 }
+
+; Hiding the overlay if it is obstructing something, default keybind is Ctrl+Alt+G
+^!g:: {
+    static overlayVisible := true
+    if overlayVisible {
+        WinHide("DialVolumeOverlay ahk_class TkTopLevel")
+        overlayVisible := false
+    } else {
+        WinShow("DialVolumeOverlay ahk_class TkTopLevel")
+        WinSetAlwaysOnTop(1, "DialVolumeOverlay ahk_class TkTopLevel")
+        overlayVisible := true
+    }
+}

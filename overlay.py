@@ -6,6 +6,7 @@ import sys
 import win32gui
 import win32process
 import psutil
+import win32con 
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 
 # ============================================================
@@ -263,6 +264,8 @@ def main():
         root.destroy()
 
     root.protocol("WM_DELETE_WINDOW", on_close)
+
+    
     poll(widgets, root)
     root.mainloop()
 
