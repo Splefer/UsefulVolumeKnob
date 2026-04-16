@@ -1,8 +1,8 @@
+
 # Dial Volume Control
 
 A small app that intercepts the CORSAIR K70 CORE TKL's rotary dial and adjusts only a **target app's volume** in the Windows Volume Mixer — not the system master volume. Click the knob to cycle between target apps, and optionally show an on-screen indicator for the current mode.
 
-***
 
 ## Requirements
 
@@ -16,37 +16,9 @@ A small app that intercepts the CORSAIR K70 CORE TKL's rotary dial and adjusts o
 
 ### Python Libraries
 Open a terminal and run:
-```py
+```
 pip install pywin32 psutil pycaw
 ```
-
-Here's the fully updated README:
-
-text
-# Dial Volume Control
-
-A small app that intercepts the CORSAIR K70 CORE TKL's rotary dial and adjusts only a **target app's volume** in the Windows Volume Mixer — not the system master volume. Click the knob to cycle between target apps, and optionally show an on-screen indicator for the current mode.
-
-***
-
-## Requirements
-
-### Software
-- **Windows 10 or 11**
-- **Python 3.8+** — [python.org/downloads](https://www.python.org/downloads/)
-  - During install, check ✅ **"Add Python to PATH"**
-- **AutoHotkey v2.0** — [autohotkey.com](https://www.autohotkey.com/)
-- **CORSAIR iCUE** — dial must be set to **Volume Control** mode (solid white indicator light on the keyboard)
-  - Note: This should also work with other dials that send standard volume inputs; this is just the keyboard it was tested with.
-
-### Python Libraries
-Open a terminal and run:
-
-pip install pywin32 psutil pycaw
-
-text
-
-***
 
 ## Files
 
