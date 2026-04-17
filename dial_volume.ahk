@@ -6,20 +6,24 @@ overlayEnabled := 1
 ; ==============
 
 if (overlayEnabled) {
-    Run('pythonw "C:\path\to\overlay.py"',, "Hide")
+    Run('pythonw "C:\\Users\\raiya\\Downloads\UsefulVolumeKnob\overlay.py"',, "Hide")
 }
 
 Volume_Up:: {
-    Run('pythonw "C:\path\to\main.py" up',, "Hide")
+    Run('pythonw "C:\\Users\\raiya\\Downloads\UsefulVolumeKnob\main.py" up',, "Hide")
 }
 
 Volume_Down:: {
-    Run('pythonw "C:\path\to\main.py" down',, "Hide")
+    Run('pythonw "C:\\Users\\raiya\\Downloads\UsefulVolumeKnob\main.py" down',, "Hide")
 }
 
-; Knob click = cycle target
 Volume_Mute:: {
-    Run('pythonw "C:\path\to\main.py" cycle',, "Hide")
+    Run('pythonw "C:\\Users\\raiya\\Downloads\UsefulVolumeKnob\main.py" cycle',, "Hide")
+}
+
+; Shift + knob click — mute/unmute currently selected target
++Volume_Mute:: {
+    Run('pythonw "C:\\Users\\raiya\\Downloads\UsefulVolumeKnob\main.py" mute',, "Hide")
 }
 
 ; Global exit hotkey: closes this script AND overlay, keybind to close is Alt+Shift+Q

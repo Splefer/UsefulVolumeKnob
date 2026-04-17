@@ -1,0 +1,26 @@
+{
+  "folder": "C:/Users/raiya/Videos",
+  "app_folder": "C:/Users/raiya/Videos\\UsefulVolumeKnob",
+  "overlay_enabled": true,
+  "display_mode": "knob",
+  "volume_step": 0.03,
+  "targets": [
+    "foreground",
+    "Spotify.exe",
+    "Discord.exe"
+  ],
+  "labels": {
+    "0": [
+      "\ud83d\udda5",
+      "#aaaaaa"
+    ],
+    "1": [
+      "\ud83c\udfb5",
+      "#1db954"
+    ],
+    "2": [
+      "\ud83c\udf99",
+      "#5865f2"
+    ]
+  }
+}
