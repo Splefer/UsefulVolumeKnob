@@ -112,32 +112,37 @@ def write_ahk(folder, main_path, overlay_path, overlay_enabled):
     return ahk_path
 
 # ── GUI ──────────────────────────────────────────────────────────────────────
-def ensure_app_installed(parent_folder):
-    """
-    Ensure that parent_folder\\UsefulVolumeKnob exists and contains
-    main.py and overlay.py copied from the setup.py directory.
+import urllib.request
+import urllib.error
 
-    Returns the full app folder path.
-    """
+REPO_OWNER  = "Splefer"
+REPO_NAME   = "UsefulVolumeKnob"
+REPO_BRANCH = "main"
+RAW_BASE    = f"https://raw.githubusercontent.com/{REPO_OWNER}/{REPO_NAME}/{REPO_BRANCH}"
+
+def download_file(url, dest_path):
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    try:
+        with urllib.request.urlopen(url) as response:
+            content = response.read()
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"Failed to download {url}\nHTTP {e.code}: {e.reason}")
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"Could not reach GitHub for {url}\n{e.reason}")
+    with open(dest_path, "wb") as f:
+        f.write(content)
+
+def ensure_app_installed(parent_folder):
     app_folder = os.path.join(parent_folder, APP_FOLDER_NAME)
     os.makedirs(app_folder, exist_ok=True)
 
-    # Source files live next to setup.py
-    src_main = os.path.join(THIS_DIR, "main.py")
-    src_overlay = os.path.join(THIS_DIR, "overlay.py")
+    for filename in ("main.py", "overlay.py"):
+        download_file(
+            f"{RAW_BASE}/{filename}",
+            os.path.join(app_folder, filename)
+        )
 
-    if not os.path.isfile(src_main):
-        raise FileNotFoundError(f"main.py not found next to setup.py ({src_main})")
-    if not os.path.isfile(src_overlay):
-        raise FileNotFoundError(f"overlay.py not found next to setup.py ({src_overlay})")
-
-    dst_main = os.path.join(app_folder, "main.py")
-    dst_overlay = os.path.join(app_folder, "overlay.py")
-
-    shutil.copy2(src_main, dst_main)
-    shutil.copy2(src_overlay, dst_overlay)
-
-    return app_folder
+    return app_folder, None   # second value keeps _apply()'s tuple unpack working
 
 class SetupApp:
     def __init__(self, root):
@@ -294,7 +299,7 @@ class SetupApp:
 
         try:
             # This will create parent_folder\\UsefulVolumeKnob and copy main/overlay into it.
-            app_folder = ensure_app_installed(parent_folder)
+            app_folder, _ = ensure_app_installed(parent_folder)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to install files:\n{e}")
             return
