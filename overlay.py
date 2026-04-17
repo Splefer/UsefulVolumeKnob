@@ -27,9 +27,9 @@ TARGETS = [
 ]
 
 LABELS = {
-    0: ("🖥  Foreground", "#aaaaaa"),
-    1: ("Spotify", "#1db954"),
-    2: ("Discord", "#5865f2"),
+    0: ("🖥", "#aaaaaa"),
+    1: ("🎵", "#1db954"),
+    2: ("🎙", "#5865f2"),
 }
 
 # --- Single instance lock ---

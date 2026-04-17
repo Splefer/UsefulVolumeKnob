@@ -4,7 +4,10 @@ from tkinter import ttk, filedialog, messagebox
 import os
 import re
 import json
+import shutil
 
+APP_FOLDER_NAME = "UsefulVolumeKnob"
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 # ── Default colours for new TARGETS slots ──────────────────────────────────
 DEFAULT_COLORS = ["#ffa500", "#ff0080", "#00c8ff", "#ff4444", "#aa44ff", "#00ffaa"]
 
@@ -98,6 +101,32 @@ Esc:: {{
     return ahk_path
 
 # ── GUI ──────────────────────────────────────────────────────────────────────
+def ensure_app_installed(parent_folder):
+    """
+    Ensure that parent_folder\\UsefulVolumeKnob exists and contains
+    main.py and overlay.py copied from the setup.py directory.
+
+    Returns the full app folder path.
+    """
+    app_folder = os.path.join(parent_folder, APP_FOLDER_NAME)
+    os.makedirs(app_folder, exist_ok=True)
+
+    # Source files live next to setup.py
+    src_main = os.path.join(THIS_DIR, "main.py")
+    src_overlay = os.path.join(THIS_DIR, "overlay.py")
+
+    if not os.path.isfile(src_main):
+        raise FileNotFoundError(f"main.py not found next to setup.py ({src_main})")
+    if not os.path.isfile(src_overlay):
+        raise FileNotFoundError(f"overlay.py not found next to setup.py ({src_overlay})")
+
+    dst_main = os.path.join(app_folder, "main.py")
+    dst_overlay = os.path.join(app_folder, "overlay.py")
+
+    shutil.copy2(src_main, dst_main)
+    shutil.copy2(src_overlay, dst_overlay)
+
+    return app_folder
 
 class SetupApp:
     def __init__(self, root):
@@ -122,7 +151,7 @@ class SetupApp:
         pad = {"padx": 10, "pady": 5}
 
         # ── Section: Install folder ──
-        self._section("📁  App folder", 0)
+        self._section("📁 Install location (parent folder)", 0)
         self.folder_var = tk.StringVar(value=self.cfg.get("folder", ""))
         folder_frame = ttk.Frame(root)
         folder_frame.grid(row=1, column=0, columnspan=3, sticky="ew", **pad)
@@ -237,17 +266,32 @@ class SetupApp:
         self._add_target_row("", f"Slot {idx}", color)
 
     def _browse_folder(self):
-        folder = filedialog.askdirectory(title="Select the dial-volume app folder")
+        folder = filedialog.askdirectory(
+            title="Select the folder where UsefulVolumeKnob should be installed"
+        )
         if folder:
             self.folder_var.set(folder)
 
     def _apply(self):
-        folder = self.folder_var.get().strip()
-        if not folder or not os.path.isdir(folder):
-            messagebox.showerror("Error", "Please choose a valid folder containing main.py and overlay.py.")
+        parent_folder = self.folder_var.get().strip()
+        if not parent_folder or not os.path.isdir(parent_folder):
+            messagebox.showerror(
+                "Error",
+                "Please choose a valid folder to install UsefulVolumeKnob into."
+            )
             return
 
-        main_path    = find_file_in_dir(folder, "main.py")
+        try:
+            # This will create parent_folder\\UsefulVolumeKnob and copy main/overlay into it.
+            app_folder = ensure_app_installed(parent_folder)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to install files:\n{e}")
+            return
+
+        # From this point on, treat app_folder as the “dial-volume app folder”
+        folder = app_folder
+
+        main_path = find_file_in_dir(folder, "main.py")
         overlay_path = find_file_in_dir(folder, "overlay.py")
 
         if not main_path:
