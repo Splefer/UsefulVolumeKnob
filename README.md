@@ -1,8 +1,10 @@
-
 # Dial Volume Control
 
-A small app that intercepts the CORSAIR K70 CORE TKL's rotary dial and adjusts only a **target app's volume** in the Windows Volume Mixer — not the system master volume. Click the knob to cycle between target apps, and optionally show an on-screen indicator for the current mode.
+A small app that intercepts a keyboard rotary dial and adjusts only a **target app's volume** in the Windows Volume Mixer — not the system master volume. Works with any keyboard that has a rotary dial that sends standard volume key inputs.
 
+Click the knob to cycle between target apps, and optionally display an on-screen indicator showing the current target and its volume level.
+
+***
 
 ## Requirements
 
@@ -11,8 +13,7 @@ A small app that intercepts the CORSAIR K70 CORE TKL's rotary dial and adjusts o
 - **Python 3.8+** — [python.org/downloads](https://www.python.org/downloads/)
   - During install, check ✅ **"Add Python to PATH"**
 - **AutoHotkey v2.0** — [autohotkey.com](https://www.autohotkey.com/)
-- **CORSAIR iCUE** — dial must be set to **Volume Control** mode (solid white indicator light on the keyboard)
-  - Note: This should also work with other dials that send standard volume inputs; this is just the keyboard it was tested with.
+- Your keyboard's dial must be set to **Volume Control** mode
 
 ### Python Libraries
 Open a terminal and run:
@@ -20,180 +21,64 @@ Open a terminal and run:
 pip install pywin32 psutil pycaw
 ```
 
-## Files
-
-| File | Purpose |
-|------|---------|
-| `main.py` | Adjusts the target app's volume in the Windows mixer; handles mode cycling |
-| `dial_volume.ahk` | Intercepts dial input and knob click, calls `main.py`, and can optionally launch the overlay |
-| `overlay.py` | Optional on-screen indicator that shows the current target mode and volume |
-| `dial_state.txt` | Auto-generated — stores which target is currently active (do not edit manually) |
-| `overlay.lock` | Auto-generated — prevents duplicate overlay instances (do not edit manually) |
-
 ***
 
 ## Setup
 
-### 1. Update the file paths in `dial_volume.ahk`
+1. Run `setup.py`:
+   ```
+   python setup.py
+   ```
 
-Open `dial_volume.ahk` in any text editor and replace the placeholder paths with the actual locations of `main.py` and `overlay.py` on your machine:
+2. In the setup window:
+   - **App folder** — click Browse and select the folder containing `main.py` and `overlay.py`
+   - **Overlay** — check or uncheck to enable/disable the on-screen indicator
+   - **Display mode** — choose how the volume indicator looks (knob, bar, or text only)
+   - **Volume step** — how much each dial tick changes volume (default `0.05` = 5%)
+   - **Target apps** — add or remove the apps you want the dial to control; each gets a label and colour shown in the overlay
 
-```ahk
-#Requires AutoHotkey v2.0
+3. Click **Save & apply** — this writes your settings to `main.py`, `overlay.py`, and generates `dial_volume.ahk` with the correct file paths.
 
-; === CONFIG ===
-; Set to 1 to enable on-screen overlay, 0 to disable
-overlayEnabled := 1
-; ==============
+4. Double-click `dial_volume.ahk` to launch. A green **H** icon will appear in your system tray.
 
-if (overlayEnabled) {
-    Run('pythonw "C:\\Users\\YourName\\dial-volume\\overlay.py"',, "Hide")
-}
+That's it. The dial now controls the volume of whichever target is active.
 
-Volume_Up:: {
-    Run('pythonw "C:\\Users\\YourName\\dial-volume\\main.py" up',, "Hide")
-}
-
-Volume_Down:: {
-    Run('pythonw "C:\\Users\\YourName\\dial-volume\\main.py" down',, "Hide")
-}
-
-; Intercept knob click (mute key) — cycle target instead
-Volume_Mute:: {
-    Run('pythonw "C:\\Users\\YourName\\dial-volume\\main.py" cycle',, "Hide")
-}
-
-; Exit everything cleanly (overlay + this script)
-Esc:: {
-    WinClose("DialVolumeOverlay ahk_class TkTopLevel")
-    ExitApp()
-}
-```
-
-> **Tip:** Right-click `main.py` or `overlay.py` → Properties → copy the full path from the Location field, then append `\\main.py` or `\\overlay.py`.
-
-### 2. Run the AutoHotkey script
-
-Double-click `dial_volume.ahk`. A green **H** icon will appear in your system tray — this means it's running.
-
-That's it. The dial will now control the volume of whichever target is currently active.
-
-***
-
-## Overlay indicator
-
-The on-screen overlay is **optional**. When enabled, it shows a small always-on-top widget in the bottom-right corner of your screen with the current target and its volume level.
-
-### Enabling or disabling the overlay
-
-In `dial_volume.ahk`, set the flag at the top of the file:
-
-```ahk
-overlayEnabled := 1   ; show the overlay
-overlayEnabled := 0   ; hide the overlay
-```
-
-### Togglable Keybind
-If you want the overlay to show sometimes, and not have to keep restarting the program, leave the flag to 1. That is:
-```ahk
-overlayEnabled := 1
-```
-After this, you can now use Shift + Alt + G to toggle the visibility of the overlay whenever you want.
-
-### Choosing a display style
-
-Open `overlay.py` and change `DISPLAY_MODE` near the top of the file:
-
-```python
-# Options:
-#   "knob"  — circular arc that fills like a volume knob (default)
-#   "bar"   — ascending block staircase  ▁▂▃▄▅▆▇█
-#   "text"  — percentage number only, no graphic
-DISPLAY_MODE = "knob"
-```
-
-| Mode | Appearance |
-|------|-----------|
-| `"knob"` | Circular arc that fills clockwise as volume increases, with percentage in the centre |
-| `"bar"` | Eight ascending block characters (`▁▂▃▄▅▆▇█`) that grow as volume increases |
-| `"text"` | Plain percentage number only — most minimal |
-
-### Changing overlay colours
-
-Each target slot has its own colour, defined in the `LABELS` dictionary in `overlay.py`. The colour applies to both the app name label and the volume indicator:
-
-```python
-LABELS = {
-    0: ("🖥  Foreground", "#aaaaaa"),   # grey
-    1: ("🎵  Spotify",    "#1db954"),   # Spotify green
-    2: ("🎙  Discord",    "#5865f2"),   # Discord blurple
-    3: ("Slot 3",         "#ffa500"),   # orange
-    4: ("Slot 4",         "#ff0080"),   # pink
-    5: ("Slot 5",         "#00c8ff"),   # cyan
-}
-```
-
-Replace any hex colour value (e.g. `"#1db954"`) with any standard HTML hex colour. The index must match the position of the app in the `TARGETS` list.
-
-> **Note:** If you add new apps to `TARGETS`, add a matching entry to `LABELS` in `overlay.py` at the same index, otherwise the overlay will fall back to white for that slot.
-
-### Keeping `TARGETS` in sync
-
-The `TARGETS` list must be **identical** in both `main.py` and `overlay.py`. `main.py` uses it to know which app to adjust; `overlay.py` uses it to know which app's volume to read and display.
+> **Tip:** To start automatically on boot, press `Win + R`, type `shell:startup`, and copy (or create a shortcut to) `dial_volume.ahk` into that folder.
 
 ***
 
 ## Usage
 
 ### Rotating the dial
-Rotating the dial adjusts the volume of the **currently active target** only. All other apps and master volume are unaffected.
+Adjusts the volume of the currently active target only. All other apps and master volume are unaffected.
 
 ### Clicking the knob
-Each click cycles to the next target in the list:
+Cycles to the next app in your target list. The overlay (if enabled) updates to show the new target.
 
-| Click count | Active target |
-|-------------|--------------|
-| 0 (default) | Foreground window (whatever app is focused) |
-| 1 | Spotify |
-| 2 | Discord |
-| 3 | Wraps back to foreground window |
-
-> **Example:** You're in a game and a friend on Discord is hard to hear. Click the knob once to skip past Spotify, click again to land on Discord, then turn the dial up — only Discord's volume changes. Click once more to return to foreground mode.
-
-### Exiting cleanly
-Press `Esc` while `dial_volume.ahk` is running to close both the overlay and the AHK script together.
-
-### Adding more apps to the cycle
-Open `main.py` and edit the `TARGETS` list near the top of the file:
-
-```python
-TARGETS = [
-    "foreground",   # always keep this — it's the default mode
-    "Spotify.exe",
-    "Discord.exe",
-    "vlc.exe",      # example: add any .exe name here
-]
-```
-
-Then add a matching entry to `LABELS` in `overlay.py` at the same index:
-
-```python
-LABELS = {
-    ...
-    3: ("🎬  VLC", "#ff6600"),
-}
-```
-
-To find the correct `.exe` name for any app, open **Task Manager** → Details tab and look for the process name while the app is running.
+> **Example:** You're in a game and a friend on a call is hard to hear. Click the knob to switch to their app, turn the dial up — only their volume changes. Click again to return to foreground mode.
 
 ***
 
-## Auto-Start on Boot (Optional)
+## Keybinds
 
-To have the script start automatically when Windows loads:
+| Shortcut | Action |
+|----------|--------|
+| `Alt + Shift + G` | Toggle overlay visibility on/off |
+| `Alt + Shift + Q` | Quit the app (closes overlay and AHK script) |
 
-1. Press `Win + R`, type `shell:startup`, and press Enter
-2. Copy (or create a shortcut to) `dial_volume.ahk` into that folder
+***
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `setup.py` | GUI installer — configure and apply all settings |
+| `main.py` | Adjusts target app volume; handles dial cycle |
+| `overlay.py` | Optional on-screen volume indicator |
+| `dial_volume.ahk` | Auto-generated by setup — intercepts dial input |
+| `dial_state.txt` | Auto-generated — tracks current target (do not edit) |
+| `overlay.lock` | Auto-generated — prevents duplicate overlays (do not edit) |
+| `setup_config.json` | Auto-generated — remembers your last setup settings |
 
 ***
 
@@ -204,22 +89,9 @@ To have the script start automatically when Windows loads:
 | Dial still changes master volume | Make sure `dial_volume.ahk` is running (check system tray for H icon) |
 | Knob click still mutes instead of cycling | Same as above — `dial_volume.ahk` must be running |
 | No audio change when rotating | The target app may have no active audio session; make sure it is playing audio |
-| App not found in cycle mode | Check Task Manager → Details for the exact `.exe` name and update `TARGETS` in both `main.py` and `overlay.py` |
-| `pythonw` not found | Ensure Python is installed and added to PATH; try replacing `pythonw` with the full path e.g. `C:\\Python312\\pythonw.exe` |
-| iCUE dial mode is wrong | Open iCUE → K70 CORE TKL → dial settings → set to **Volume Control** |
-| Want to reset the cycle to foreground | Delete `dial_state.txt` from the app folder, or click the knob until back at default |
-| Overlay is showing but not wanted | Set `overlayEnabled := 0` in `dial_volume.ahk` |
-| Overlay does not appear | Make sure `overlayEnabled := 1`, `overlay.py` exists at the path in `dial_volume.ahk`, and Python can run `tkinter` |
-| Two overlays stacked on screen | Run `taskkill /F /IM pythonw.exe` in a terminal to kill all instances, then relaunch `dial_volume.ahk` |
-| Overlay stuck after closing AHK | Same fix — run `taskkill /F /IM pythonw.exe`, then delete `overlay.lock` from the app folder if it still exists |
-| Overlay colour is wrong for a slot | Make sure the index in `LABELS` in `overlay.py` matches the position in `TARGETS` |
-
-***
-
-## Adjusting Sensitivity
-
-The volume step per dial tick defaults to **5%**. To change it, open `main.py` and edit the top of the file:
-
-```python
-VOLUME_STEP = 0.05  # 0.02 = 2% per tick (finer), 0.10 = 10% per tick (coarser)
-```
+| App not found in cycle | Open Task Manager → Details tab to find the exact `.exe` name, then re-run `setup.py` |
+| `pythonw` not found | Ensure Python is installed and added to PATH; re-run setup and check the path is correct |
+| Overlay does not appear | Re-run `setup.py`, confirm overlay is enabled, and check `overlay.py` exists in the selected folder |
+| Two overlays stacked on screen | Run `taskkill /F /IM pythonw.exe` in a terminal, delete `overlay.lock` from the app folder, then relaunch `dial_volume.ahk` |
+| Keybinds not working | Make sure `dial_volume.ahk` is running — keybinds are handled by AutoHotkey |
+| Settings not saving | Make sure the app folder is not in a protected location (e.g. `Program Files`); try moving it to your home folder |
