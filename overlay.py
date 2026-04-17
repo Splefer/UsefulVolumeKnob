@@ -68,26 +68,26 @@ def get_volume_for_index(index):
     if index < len(TARGETS):
         target_entry = TARGETS[index]
     else:
-        return None
+        return None, False
     target = get_foreground_process() if target_entry == "foreground" else target_entry
     if not target:
-        return None
+        return None, False
     try:
         sessions = AudioUtilities.GetAllSessions()
         matching = [s for s in sessions
                     if s.Process and s.Process.name().lower() == target.lower()]
         if not matching:
-            return None
+            return None, False
         chosen = matching[0]
         for s in matching:
             if s.State == 1:
                 chosen = s
                 break
         vol = chosen._ctl.QueryInterface(ISimpleAudioVolume)
-        return int(vol.GetMasterVolume() * 100)
+        return int(vol.GetMasterVolume() * 100), bool(vol.GetMute())
     except:
         pass
-    return None
+    return None, False
 
 # --- Display modes ---
 
@@ -100,7 +100,7 @@ def volume_bar(pct):
     bar = "".join(BLOCKS[i] if i < filled else " " for i in range(8))
     return f"{pct}%  {bar}"
 
-def draw_knob(canvas, pct, color, size=70):
+def draw_knob(canvas, pct, color, size=70, muted=False):
     canvas.delete("all")
     if pct is None:
         pct = 0
@@ -108,35 +108,26 @@ def draw_knob(canvas, pct, color, size=70):
     cx, cy = size // 2, size // 2
     r = size // 2 - 6
     track_width = 5
+    draw_color = "#555555" if muted else color
 
-    # Background track
     canvas.create_arc(
         cx - r, cy - r, cx + r, cy + r,
-        start=225 - 270,
-        extent=270,
-        style=tk.ARC,
-        outline="#333333",
-        width=track_width,
+        start=225 - 270, extent=270,
+        style=tk.ARC, outline="#333333", width=track_width,
     )
 
-    # Filled arc (clockwise from bottom-left)
     filled_sweep = 270 * (pct / 100)
     if filled_sweep > 0:
         canvas.create_arc(
             cx - r, cy - r, cx + r, cy + r,
-            start=225,
-            extent=-filled_sweep,
-            style=tk.ARC,
-            outline=color,
-            width=track_width,
+            start=225, extent=-filled_sweep,
+            style=tk.ARC, outline=draw_color, width=track_width,
         )
 
-    # Percentage in centre
+    centre_text = "🔇" if muted else f"{pct}%"
     canvas.create_text(
-        cx, cy,
-        text=f"{pct}%",
-        fill=color,
-        font=("Segoe UI", 10, "bold"),
+        cx, cy, text=centre_text,
+        fill=draw_color, font=("Segoe UI", 10, "bold"),
     )
 
 # --- Poll loop ---
@@ -162,28 +153,30 @@ def resize_knob_window(widgets, root, text):
 
     root.geometry(f"{width}x{height}+{x}+{y}")
 
-def poll(widgets, root, last_state=[None, None]):
+def poll(widgets, root, last_state=[None, None, None]):
     idx = get_index()
-    vol = get_volume_for_index(idx)
+    vol, muted = get_volume_for_index(idx)
     text, color = LABELS.get(idx, (f"Mode {idx}", "#ffffff"))
 
-    if (idx, vol) != (last_state[0], last_state[1]):
+    if (idx, vol, muted) != (last_state[0], last_state[1], last_state[2]):
         if DISPLAY_MODE == "knob":
-            draw_knob(widgets["canvas"], vol, color)
+            draw_knob(widgets["canvas"], vol, color, muted=muted)
             widgets["app_label"].config(text=text, fg=color)
-            resize_knob_window(widgets, root, text)   # <-- resize to fit text
+            resize_knob_window(widgets, root, text)
 
         elif DISPLAY_MODE == "bar":
-            widgets["vol_label"].config(text=volume_bar(vol), fg=color)
+            bar_text = "🔇 muted" if muted else volume_bar(vol)
+            widgets["vol_label"].config(text=bar_text, fg=color)
             widgets["app_label"].config(text=text, fg=color)
 
         else:
-            vol_text = f"{vol}%" if vol is not None else "—"
+            vol_text = "🔇 muted" if muted else (f"{vol}%" if vol is not None else "—")
             widgets["vol_label"].config(text=vol_text, fg=color)
             widgets["app_label"].config(text=text, fg=color)
 
         last_state[0] = idx
         last_state[1] = vol
+        last_state[2] = muted
 
     root.after(300, lambda: poll(widgets, root, last_state))
 
